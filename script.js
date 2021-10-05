@@ -16,104 +16,179 @@ const camera = new THREE.PerspectiveCamera(
     1,
     500
 );
-camera.position.set(0, 10, 50);
+camera.position.set(-30, 100, -150);
 
 // LIGHT
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(-10, 15, 15);
 scene.add(light);
 
-const floor_dimensions = { x: 20, y: 0.8, z: 15 };
-
-// BOX
-const material = new THREE.MeshLambertMaterial({ color: 0xffbda5 });
-const geometry1 = new THREE.BoxGeometry(
-    floor_dimensions.x * 1.5,
-    floor_dimensions.y,
-    floor_dimensions.z * 1.5
+// GROUND
+const ground_data = { dimensions: { x: 80, y: 0.8, z: 180 }, color: 0xffbda5 };
+const ground_mat = new THREE.MeshLambertMaterial({ color: ground_data.color });
+const ground_geo = new THREE.BoxGeometry(
+    ground_data.dimensions.x * 2,
+    ground_data.dimensions.y,
+    ground_data.dimensions.z * 1.5
 );
-const box = new THREE.Mesh(geometry1, material);
-scene.add(box);
-box.position.set(0, -floor_dimensions.y, 0);
+const ground = new THREE.Mesh(ground_geo, ground_mat);
+scene.add(ground);
+ground.position.set(0, -ground_data.dimensions.y, 0);
 
-const material2 = new THREE.MeshLambertMaterial({ color: 0x003399 });
-const geometry2 = new THREE.BoxGeometry(
-    floor_dimensions.x * 1.01,
-    floor_dimensions.y * 1.01,
-    floor_dimensions.z * 1.01
-);
-const box2 = new THREE.Mesh(geometry2, material2);
-scene.add(box2);
-box2.position.set(0, 0, 0);
-
-function newBox(x, y, z, withEdge = false) {
-    const material = new THREE.MeshLambertMaterial({
-        color: 0x000000,
-        opacity: 0.5,
+function build_wall({
+    x,
+    y = 30,
+    z,
+    pos_x = 0,
+    pos_z = 0,
+    pos_y = 0,
+    color = 0x434343,
+    side = THREE.FrontSide,
+    opacity = 0.5,
+    rotate = 0,
+}) {
+    const wall_mat = new THREE.MeshBasicMaterial({
+        color,
+        opacity,
         transparent: true,
+        side,
     });
-    const geometry = new THREE.BoxGeometry(x, y, z);
-    const mesh = new THREE.Mesh(geometry, material);
-    if (withEdge) {
-        var geometry_edge = new THREE.EdgesGeometry(
-            new THREE.BoxGeometry(x, y, z)
-        );
-        var material_edge = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-        });
-        var edge = new THREE.LineSegments(geometry_edge, material_edge);
-        mesh.add(edge);
+    const wall_geo = new THREE.BoxGeometry(x, y, z);
+    const wall = new THREE.Mesh(wall_geo, wall_mat);
+    scene.add(wall);
+    if (!pos_y) pos_y = y / 2;
+    wall.position.set(pos_x, pos_y, pos_z);
+    if (rotate) {
+        wall.rotation.y = rotate;
     }
-    return mesh;
 }
+const walls = [
+    { x: 50, z: 1, pos_x: 15, pos_z: -90 }, // A
+    { x: 10, z: 1, pos_x: -35, pos_z: -90 }, // B
 
-const floors = [];
-// const floor_dimensions = {x: 20, y: 0.8, z: 15}
-for (let i = 0; i < 10; i += 2) {
-    floors.push(
-        newBox(floor_dimensions.x, floor_dimensions.y, floor_dimensions.z, true)
-    );
-    floors[floors.length - 1].position.set(0, 2 * i, 0);
-}
-floors.forEach((el) => scene.add(el));
+    { x: 1, z: 180, pos_x: 40 }, // C - Left outer wall
+    { x: 1, z: 60, pos_x: 10, pos_z: -60 }, // D
+    { x: 1, z: 180, pos_x: -40 }, //E - Right outer wall
+    { x: 80, z: 1, pos_z: 90 },
+    { x: 40, z: 1, pos_x: 20, pos_z: -30 }, // F
+    { x: 40, z: 1, pos_x: 20, pos_z: 0 }, // G
+    { x: 1, z: 30, pos_x: 0, pos_z: -15 }, //H
+    { x: 20, z: 1, pos_x: 30, pos_z: 10 }, //I
+    { x: 20, z: 1, pos_x: 30, pos_z: 60 }, //J
+    { x: 20, z: 1, pos_x: -30, pos_z: 10 }, //K
+    { x: 20, z: 1, pos_x: -30, pos_z: 60 }, //L
+    { x: 1, z: 50, pos_x: -20, pos_z: 35 }, //M
+    { x: 1, z: 50, pos_x: 20, pos_z: 35 }, //N
+    { x: 60, z: 1, pos_x: 0, pos_z: 70 }, // O
+    { x: 1, z: 20, pos_x: 30, pos_z: 80 }, //P
+    { x: 1, z: 20, pos_x: -30, pos_z: 80 }, //Q
+    { x: 20, y: 5, z: 1, pos_x: -20, pos_z: -90, pos_y: 27.5 }, //maindoortop
+    {
+        x: 10,
+        y: 25,
+        z: 1,
+        pos_x: -10 + (Math.cos(Math.PI / 3) * 10) / 2,
+        pos_z: -90 + (Math.sin(Math.PI / 3) * 10) / 2,
+        color: 0x831a1a,
+        opacity: 0.9,
+        rotate: (Math.PI * 4) / 6,
+    }, //maindoor
+    {
+        x: 10,
+        y: 25,
+        z: 1,
+        pos_x: -25,
+        pos_z: -90,
+        color: 0x831a1a,
+        opacity: 0.9,
+    }, //maindoor
+    {
+        x: 35,
+        z: 1,
+        pos_x: -22.5,
+        pos_z: -70,
+        color: 0x00689c,
+        opacity: 0.9,
+    }, // ying bi
+    {
+        z: 10,
+        x: 1,
+        y: 25,
+        color: 0xffffff,
+        pos_x: 9.9,
+        pos_z: -54.8,
+        opacity: 0.9,
+    },
+    {
+        z: 10,
+        x: 1,
+        y: 25,
+        color: 0xffffff,
+        pos_x: 9.9,
+        pos_z: -65.2,
+        opacity: 0.9,
+    },
+    {
+        z: 10,
+        x: 1,
+        y: 25,
+        color: 0xffffff,
+        pos_x: -19.9,
+        pos_z: 25,
+        opacity: 0.9,
+    },
+    {
+        z: 10,
+        x: 1,
+        y: 25,
+        color: 0xffffff,
+        pos_x: 19.9,
+        pos_z: 45,
+        opacity: 0.9,
+    },
+    {
+        z: 1,
+        x: 10,
+        y: 25,
+        color: 0xffffff,
+        pos_x: -5.2,
+        pos_z: 69.9,
+        opacity: 0.9,
+    },
+    {
+        z: 1,
+        x: 10,
+        y: 25,
+        color: 0xffffff,
+        pos_x: 5.2,
+        pos_z: 69.9,
+        opacity: 0.9,
+    },
+    {
+        z: 1,
+        x: 10,
+        y: 25,
+        color: 0xffffff,
+        pos_x: 10,
+        pos_z: 0.1,
+        opacity: 0.9,
+    },
+];
+walls.forEach((wall) => build_wall(wall));
 
-const columns = [];
-const column_dimensions = { x: 1, y: 3.5, z: 1 };
-for (let i = 0; i < 8; i += 2) {
-    columns.push(
-        newBox(column_dimensions.x, column_dimensions.y, column_dimensions.z)
-    );
-    columns[columns.length - 1].position.set(
-        (0.9 * floor_dimensions.x) / 2 - column_dimensions.x / 2,
-        column_dimensions.y / 2 + floor_dimensions.y / 2 + 2 * i,
-        (-0.9 * floor_dimensions.z) / 2 + column_dimensions.z / 2
-    );
-    columns.push(
-        newBox(column_dimensions.x, column_dimensions.y, column_dimensions.z)
-    );
-    columns[columns.length - 1].position.set(
-        (0.9 * floor_dimensions.x) / 2 - column_dimensions.x / 2,
-        column_dimensions.y / 2 + floor_dimensions.y / 2 + 2 * i,
-        (0.9 * floor_dimensions.z) / 2 - column_dimensions.z / 2
-    );
-    columns.push(
-        newBox(column_dimensions.x, column_dimensions.y, column_dimensions.z)
-    );
-    columns[columns.length - 1].position.set(
-        (-0.9 * floor_dimensions.x) / 2 + column_dimensions.x / 2,
-        column_dimensions.y / 2 + floor_dimensions.y / 2 + 2 * i,
-        (-0.9 * floor_dimensions.z) / 2 + column_dimensions.z / 2
-    );
-    columns.push(
-        newBox(column_dimensions.x, column_dimensions.y, column_dimensions.z)
-    );
-    columns[columns.length - 1].position.set(
-        (-0.9 * floor_dimensions.x) / 2 + column_dimensions.x / 2,
-        column_dimensions.y / 2 + floor_dimensions.y / 2 + 2 * i,
-        (0.9 * floor_dimensions.z) / 2 - column_dimensions.z / 2
-    );
-}
-columns.forEach((el) => scene.add(el));
+// final touch
+const loader = new THREE.TextureLoader();
+const flower = new THREE.MeshBasicMaterial({
+    color: 0xff8844,
+    map: loader.load('./flower.jpg'),
+});
+
+const pretty_wall_geo = new THREE.BoxGeometry(30, 20, 1);
+const pretty_wall = new THREE.Mesh(pretty_wall_geo, flower);
+scene.add(pretty_wall);
+pretty_wall.position.set(-22.5, 17, -70.2);
+
+// wall.position.set(pos_x, pos_y, pos_z);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 function animate() {
