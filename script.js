@@ -50,17 +50,17 @@ function build_wall({
     const wall_mat = new THREE.MeshBasicMaterial({
         color,
         opacity,
-        transparent: true,
         side,
+        transparent: true,
     });
     const wall_geo = new THREE.BoxGeometry(x, y, z);
     const wall = new THREE.Mesh(wall_geo, wall_mat);
     scene.add(wall);
+
+    if (rotate) wall.rotation.y = rotate;
     if (!pos_y) pos_y = y / 2;
+
     wall.position.set(pos_x, pos_y, pos_z);
-    if (rotate) {
-        wall.rotation.y = rotate;
-    }
 }
 const walls = [
     { x: 50, z: 1, pos_x: 15, pos_z: -90 }, // A
@@ -174,27 +174,23 @@ const walls = [
         opacity: 0.9,
     },
 ];
-walls.forEach((wall) => build_wall(wall));
+
+walls.forEach(build_wall);
 
 // final touch
 const loader = new THREE.TextureLoader();
-const flower = new THREE.MeshBasicMaterial({
-    color: 0xff8844,
+const flower_material = new THREE.MeshBasicMaterial({
     map: loader.load('./flower.jpg'),
 });
 
 const pretty_wall_geo = new THREE.BoxGeometry(30, 20, 1);
-const pretty_wall = new THREE.Mesh(pretty_wall_geo, flower);
+const pretty_wall = new THREE.Mesh(pretty_wall_geo, flower_material);
 scene.add(pretty_wall);
 pretty_wall.position.set(-22.5, 17, -70.2);
-
-// wall.position.set(pos_x, pos_y, pos_z);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 function animate() {
     requestAnimationFrame(animate);
-    // box.rotation.x += 0.01;
-    // required if controls.enableDamping or controls.autoRotate are set to true
     controls.update();
     renderer.render(scene, camera);
 }
